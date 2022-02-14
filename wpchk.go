@@ -6,9 +6,10 @@ import (
   "io"
   "log"
   "net/http"
-  "strings"
   _ "github.com/breml/rootcerts"
 )
+
+// root certs import nmakes the binary independent from the OS CA certificate file
 
 func pageCheckSum(url string) {
   // Make HTTP GET request
@@ -18,19 +19,19 @@ func pageCheckSum(url string) {
   }
   defer response.Body.Close()
 
+  // checksum the bytes in the body
   b, err := io.ReadAll(response.Body)
   sha256Sum := sha256.Sum256([]byte(b))
-  checksum := fmt.Sprintf("%x\n", sha256Sum)
+  checksum := fmt.Sprintf("%x", sha256Sum)
 
+  // post to log website
   logurl := "http://msg2.kandek.com/log?" + url + "_" + checksum
-  logurl = strings.TrimSuffix(logurl,"\n")
   log.Println("Checksum:", logurl)
-  logresponse, err := http.Get(logurl)
+  response, err = http.Get(logurl)
   if err != nil {
     log.Fatal(err)
   }
-  defer logresponse.Body.Close()
-  b, err = io.ReadAll(logresponse.Body)
+  defer response.Body.Close()
 }
 
 
